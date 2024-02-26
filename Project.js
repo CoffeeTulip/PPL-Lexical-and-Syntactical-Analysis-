@@ -19,4 +19,8 @@ fs.readFile('test.py', 'utf8', (err, data) => {
         }
         console.log('Python file contents successfully written to output.txt');
     });
+
+    // Read Python file for "print" statements
+    let regex = /print\(.*\)/g;
+    console.log('Number of Python "print" statements:', (data.match(regex) || []).length);
 });
