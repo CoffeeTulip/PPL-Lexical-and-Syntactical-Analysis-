@@ -26,9 +26,7 @@ fs.readFile('test.py', 'utf8', (err, data) => {
 });
 
 
-function checkPythonIndentation() {
-    const filePath = 'test.py'; // File path to test.py
-
+function checkAndFixPythonIndentation(filePath) {
     // Read the Python file
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
@@ -38,49 +36,63 @@ function checkPythonIndentation() {
 
         // Split file contents into lines
         const lines = data.split('\n');
-
-        // Track the expected indentation level
         let expectedIndentation = 0;
         let errorFound = false;
-        let inBlock = false;
+        let inBlock = false; 
+        
+        // Regex for blocks 
+        const blockStartKeywordsRegex = /^(def|for|while|if|elif|else|main())\b/;
+        const blockEndKeywordsRegex = /^(else|elif|finally)\b/;
 
-        // Regex for Start and End of Blocks
-        const blockStartKWRegex = /^(def|for|while|if|elif|else)\b/;
-        const blockEndKWRegex = /^(else|elif|finally)\b/;
-
+    for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const nextLine = lines[i + 1];
         
-        const indentation = line.search(/\S/); // Find the index of the first non-whitespace character
-        const expectedIndentationSpaces = expectedIndentation * 4; 
-
-        if (indentation !== expectedIndentationSpaces) {
-            console.error(`Error: Incorrect indentation at line ${i + 1}`);
-            // Fix indentation
-            lines[i] = ' '.repeat(expectedIndentationSpaces) + line.trimStart(); // Adjust the indentation
-            errorFound = true;
+        // Skip empty lines or lines containing only whitespace
+        if (!line.trim()){
+            continue;
         }
     
-        // Update expected indentation level based on the line
-        if (blockStartKeywordsRegex.test(line)) {
-            expectedIndentation++;
-            inBlock = true; // We're starting a new block
-        } 
-        else if (inBlock && blockEndKeywordsRegex.test(line) && nextLine.trim() == '') {
-            expectedIndentation=0;
-            inBlock = false; // We're no longer within a block
+    const indentation = line.search(/\S/); 
+    const expectedIndentationSpaces = expectedIndentation * 4; 
+    if (indentation !== expectedIndentationSpaces) {
+        console.error(`Error: Incorrect indentation at line ${i + 1}`);
+        // Fix indentation
+        lines[i] = ' '.repeat(expectedIndentationSpaces) + line.trimStart(); 
+        errorFound = true;
+    }
+    
+    // Update expected indentation level based on the line
+    if (blockStartKeywordsRegex.test(line)) {
+        expectedIndentation++;
+        inBlock = true; 
+    } 
+    else if (inBlock && blockEndKeywordsRegex.test(line) && nextLine.trim() == '') {
+        expectedIndentation=0;
+        inBlock = false; 
         }
-}
+    }
 
         if (!errorFound) {
             console.log('Indentation check passed. No errors found.');
+        } else {
+            // Write the fixed content back to the file
+            const fixedContent = lines.join('\n');
+            fs.writeFile(filePath, fixedContent, 'utf8', (err) => {
+                if (err) {
+                    console.error('Error writing fixed content to file:', err);
+                    return;
+                }
+                console.log('Indentation errors fixed. File updated successfully.');
+            });
         }
     });
 }
 
-
 // Example usage:
-checkPythonIndentation();
+checkAndFixPythonIndentation('test.py');
+
+
 
 
 // Function to check if all Python function headers are syntactically correct
@@ -117,3 +129,4 @@ checkPythonFunctionHeaders('test.py')
     .catch(error => {
         console.error(error);
     });
+
