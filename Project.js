@@ -42,20 +42,35 @@ function checkPythonIndentation() {
         // Track the expected indentation level
         let expectedIndentation = 0;
         let errorFound = false;
+        let inBlock = false;
 
-        // Iterate over each line and check indentation
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            // Skip empty lines or lines containing only whitespace
-            if (line.trim() === '') {
-                continue;
-            }
-            const indentation = line.search(/\S/); // Find the index of the first non-whitespace character
-            if (indentation % 4 !== 0) { // Check if indentation is not a multiple of 4 spaces
-                console.error(`Error: Incorrect indentation at line ${i + 1}`);
-                errorFound = true;
-            }
+        // Regex for Start and End of Blocks
+        const blockStartKWRegex = /^(def|for|while|if|elif|else)\b/;
+        const blockEndKWRegex = /^(else|elif|finally)\b/;
+
+        const line = lines[i];
+        const nextLine = lines[i + 1];
+        
+        const indentation = line.search(/\S/); // Find the index of the first non-whitespace character
+        const expectedIndentationSpaces = expectedIndentation * 4; 
+
+        if (indentation !== expectedIndentationSpaces) {
+            console.error(`Error: Incorrect indentation at line ${i + 1}`);
+            // Fix indentation
+            lines[i] = ' '.repeat(expectedIndentationSpaces) + line.trimStart(); // Adjust the indentation
+            errorFound = true;
         }
+    
+        // Update expected indentation level based on the line
+        if (blockStartKeywordsRegex.test(line)) {
+            expectedIndentation++;
+            inBlock = true; // We're starting a new block
+        } 
+        else if (inBlock && blockEndKeywordsRegex.test(line) && nextLine.trim() == '') {
+            expectedIndentation=0;
+            inBlock = false; // We're no longer within a block
+        }
+}
 
         if (!errorFound) {
             console.log('Indentation check passed. No errors found.');
