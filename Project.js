@@ -1,34 +1,80 @@
 const fs = require('fs');
+const readline = require('readline');
 
-// Read Python file
-fs.readFile('test.py', 'utf8', (err, data) => {
-    if (err) {
-        console.error('Error reading Python file:', err);
-        return;
-    }
 
-    // Print Python file contents
-    console.log('Python file contents:');
-    console.log(data);
-
-    // Write Python file contents to a text file
-    fs.writeFile('output.txt', data, 'utf8', (err) => {
-        if (err) {
-            console.error('Error writing to text file:', err);
-            return;
-        }
-        console.log('Python file contents successfully written to output.txt');
+// File selection
+function selectFile(callback) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
     });
 
-    // Read Python file for "print" statements
-    let regex = /print\(.*\)/g;
-    console.log('Number of Python "print" statements:', (data.match(regex) || []).length);
+    rl.question('Enter the file name: ', (fileName) => {
+        // Check if the file exists
+        if (fs.existsSync(fileName)) {
+            console.log(`File "${fileName}" selected.`);
+            rl.close();
+            callback(fileName);
+        } else {
+            console.log(`File "${fileName}" not found. Please try again.`);
+            selectFile(callback);
+        }
+    });
+}
+selectFile(function(fileName) {
+    console.log(`File to be analyzed: ${fileName}`);
+    readAndPrintFile(fileName);
+    countPrintStatements(fileName);
+    checkPythonFunctionHeaders(fileName)
+    .then(result => {
+        console.log(result);
+    })
+    .catch(error => {
+        console.error(error);
+    });
 });
 
+// Read Python file
+function readAndPrintFile(fileName){
+    fs.readFile(fileName, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading Python file:', err);
+            return;
+        }
 
-function checkAndFixPythonIndentation(filePath) {
+        // Print Python file contents
+        console.log('Python file contents:');
+        console.log(data);
+
+        // Write Python file contents to a text file
+        fs.writeFile('output.txt', data, 'utf8', (err) => {
+            if (err) {
+                console.error('Error writing to text file:', err);
+                return;
+            }
+            console.log('Python file contents successfully written to output.txt');
+        });
+    });
+}
+    
+// Read Python file for "print" statements
+function countPrintStatements(fileName){
+    fs.readFile(fileName, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading Python file:', err);
+            return;
+        }
+
+        // Regular expression to match Python "print" statements
+        let regex = /print\(.*\)/g;
+        console.log('Number of Python "print" statements:', (data.match(regex) || []).length);
+    });
+}
+
+
+function checkAndFixPythonIndentation(fileName) {
     // Read the Python file
-    fs.readFile(filePath, 'utf8', (err, data) => {
+    fs.readFile(fileName, 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading Python file:', err);
             return;
@@ -122,11 +168,5 @@ function checkPythonFunctionHeaders(fileName) {
 }
 
 // Example usage:
-checkPythonFunctionHeaders('test.py')
-    .then(result => {
-        console.log(result);
-    })
-    .catch(error => {
-        console.error(error);
-    });
+
 
