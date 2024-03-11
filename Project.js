@@ -141,10 +141,10 @@ function checkAndFixPythonIndentation(fileName) {
         
         // Update expected indentation level based on the line
         if (blockStartKeywordsRegex.test(line)) {
-            expectedIndentation++;
+            expectedIndentation = expectedIndentation + 4;
             inBlock = true; 
         } 
-        else if (inBlock && blockEndKeywordsRegex.test(line) && nextLine.trim() == '') {
+        else if (inBlock && nextLine.trim() == '') {
             expectedIndentation=0;
             inBlock = false; 
             }
