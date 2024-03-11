@@ -151,7 +151,7 @@ function checkAndFixPythonIndentation(fileName) {
         }
 
             if (!errorFound) {
-                resolve('Indentation check passed. No errors found.');
+                console.log('Indentation check passed. No errors found.');
             } else {
                 // Write the fixed content back to the file
                 const fixedContent = lines.join('\n');
