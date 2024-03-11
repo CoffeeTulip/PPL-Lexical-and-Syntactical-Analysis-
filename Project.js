@@ -41,7 +41,7 @@ function startAnalysis() {
             .catch(error => {
              console.error(error);
             }),
-            checkAndFixPythonIndentation('test.py')
+            checkAndFixPythonIndentation(fileName)
         ];
 
         // Wait for all operations to complete
