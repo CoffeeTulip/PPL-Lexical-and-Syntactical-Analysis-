@@ -119,35 +119,40 @@ function checkAndFixPythonIndentation(fileName) {
             
             // Regex for blocks 
             const blockStartKeywordsRegex = /^(def|for|while|if|elif|else|main())\b/;
-            const blockEndKeywordsRegex = /^(else|elif|finally)\b/;
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const nextLine = lines[i + 1];
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const nextLine = lines[i + 1];
             
-            // Skip empty lines or lines containing only whitespace
-            if (!line.trim()){
-                continue;
-            }
-        
+        // Skip empty lines or lines containing only whitespace
+        if (!line.trim() || line.trim().startsWith('#')) {
+            continue;
+        }
+
         const indentation = line.search(/\S/); 
         const expectedIndentationSpaces = expectedIndentation * 4; 
         if (indentation !== expectedIndentationSpaces) {
             console.error(`Error: Incorrect indentation at line ${i + 1}`);
             // Fix indentation
-            lines[i] = ' '.repeat(expectedIndentationSpaces) + line.trimStart(); 
+            lines[i] = ' '.repeat(expectedIndentationSpaces) + line.trim(); 
             errorFound = true;
-        }
-        
+        }   
         // Update expected indentation level based on the line
         if (blockStartKeywordsRegex.test(line)) {
-            expectedIndentation = expectedIndentation + 4;
-            inBlock = true; 
+            expectedIndentation += 1;
         } 
-        else if (inBlock && nextLine.trim() == '') {
-            expectedIndentation=0;
-            inBlock = false; 
-            }
+        else if (!inBlock && nextLine && blockStartKeywordsRegex.test(nextLine)) {
+            // If the next line starts a block and we're not currently in a block
+            expectedIndentation += 1;
+        } 
+        else if (inBlock) {
+            // Adjust the indentation level within blocks
+            expectedIndentation = expectedIndentationSpaces / 4 + 1;
+        }
+        // Block decreases indentation level if next line is blank
+        else if  (inBlock && nextLine && nextLine.trim() === ''){
+            expectedIndentation -= 1;
+        }
         }
 
             if (!errorFound) {
