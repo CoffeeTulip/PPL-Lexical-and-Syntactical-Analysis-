@@ -8,6 +8,9 @@ def main():
     print('This is a test print: 3')
     print('This is a test print: 4')
     print('This is a test print: 5')
+    
+    fed testerFunction():
+    print('another test for the ages!')
 
     def another_function():
     print('This is another test print: 1')
