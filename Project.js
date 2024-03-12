@@ -34,6 +34,7 @@ function startAnalysis() {
         const operations = [
             readAndPrintFile(fileName),
             countPrintStatements(fileName),
+            resolveBadHeaderName(fileName),
             checkPythonFunctionHeaders(fileName)
             .then(result => {
                 console.log(result);
@@ -195,6 +196,32 @@ function checkPythonFunctionHeaders(fileName) {
             } else {
                 reject('No function headers found or there are syntactical errors.');
             }
+        });
+    });
+}
+
+// fucntion that attempts to replace the incorrect spelled function declerations 
+function resolveBadHeaderName(filename) {
+    return new Promise((resolve, reject) => {
+        fs.readFile(filename, 'utf8', (err, data) => {
+            if (err) {
+                reject('Error reading file: ' + err);
+                return;
+            }
+            
+            // regex to check for misspelled function headers
+            const functionRegex = /\b(d(e)f|d(f)e|e(d)f|e(f)d|f(e)d|f(d)e)\b/gi;
+
+            let match;
+            while((match = functionRegex.exec(data)) != null) {
+                const incorrectFunctionName =match[0];
+                const index = match.index;
+
+                const correctedHeader = data.substring(0, index) + 'def' + data.substring(index + incorrectFunctionName.length);
+
+                console.log(`Misspelled 'def' found at position ${index}: "${incorrectFunctionName}"`);
+                console.log(`Corrected Line: ${correctedHeader}`);
+            };
         });
     });
 }
